@@ -1,2 +1,366 @@
-import type{NameDNA}from"../engine/nameDNA";import type{RuneModel}from"../engine/types";
-export default function AnalysisPanel({dna,model}:{dna:NameDNA;model:RuneModel}){const rep=Object.entries(dna.repetitions).filter(([,c])=>c>1);const items:[string,string|number][]=[["Código",dna.code],["Letras",dna.length],["Suma",dna.sum],["Frecuencia",dna.digitalRoot],["Vocales",dna.vowels],["Consonantes",dna.consonants],["Ejes",dna.axes],["Repeticiones",rep.length]];return <aside className="panel analysis-panel"><div className="kicker">SIGNIFICADO</div><h2>{model.title}</h2><p className="reading">Esta runa traduce la arquitectura nominal de <strong>{dna.normalized}</strong> en un único glifo vertical.</p><div className="section"><div className="section-title">ESENCIA</div><p className="reading">{model.descriptors.join(" · ")}</p></div><div className="section"><div className="section-title">ADN GEOMÉTRICO</div><div className="metrics">{items.map(([l,v])=><div className="metric" key={l}><small>{l}</small><strong>{v}</strong></div>)}</div></div><div className="mantra">«LA FIRMA NO SE ESCRIBE. LA IDENTIDAD SE CONSTRUYE.»</div></aside>}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  background: #030712;
+  color: #e8edf5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; min-height: 100%; background: #030712; }
+button, input { font: inherit; }
+
+.app-shell {
+  min-height: 100vh;
+  position: relative;
+  padding: 18px;
+  overflow-x: hidden;
+}
+
+.cosmos {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(0,229,255,.06), transparent 22%),
+    radial-gradient(circle at 80% 12%, rgba(246,198,91,.07), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(85,36,142,.08), transparent 30%),
+    linear-gradient(#030712,#050a16);
+}
+
+.cosmos::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .23;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.8) 0 1px, transparent 1.2px),
+    radial-gradient(circle, rgba(0,229,255,.6) 0 1px, transparent 1.2px);
+  background-size: 92px 92px, 137px 137px;
+  background-position: 0 0, 27px 45px;
+}
+
+header {
+  position: relative;
+  max-width: 1860px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 8px 4px 18px;
+  border-bottom: 1px solid rgba(246,198,91,.14);
+}
+
+.brand-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #67e8f9;
+  font-size: 10px;
+  letter-spacing: .25em;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 8px 0 0;
+  font-family: Cinzel, Georgia, serif;
+  color: #fff0b8;
+  font-size: clamp(24px, 3vw, 38px);
+  letter-spacing: .18em;
+}
+
+header p {
+  margin: 6px 0 0;
+  color: #6f819b;
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.status {
+  border: 1px solid rgba(0,230,118,.2);
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #8ff0b1;
+  font-size: 10px;
+  letter-spacing: .14em;
+  background: rgba(0,230,118,.04);
+}
+
+.layout {
+  position: relative;
+  max-width: 1860px;
+  margin: 18px auto 0;
+  display: grid;
+  grid-template-columns: 330px minmax(580px, 1fr) 360px;
+  gap: 18px;
+}
+
+.panel,
+.stage {
+  border: 1px solid rgba(246,198,91,.14);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(12,22,40,.92), rgba(5,11,24,.93));
+  box-shadow: 0 26px 80px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.02);
+}
+
+.panel {
+  padding: 18px;
+}
+
+.kicker,
+.section-title {
+  color: #67e8f9;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+label {
+  display: block;
+  margin: 14px 0 8px;
+  color: #6f819b;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+input {
+  width: 100%;
+}
+
+input[type="text"],
+input:not([type]) {
+  padding: 12px;
+  border: 1px solid rgba(246,198,91,.22);
+  border-radius: 12px;
+  background: rgba(2,6,23,.72);
+  color: #fff4c7;
+  outline: none;
+}
+
+input[type="range"] {
+  accent-color: #f6c65b;
+}
+
+.section {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(148,163,184,.1);
+  border-radius: 16px;
+  background: rgba(2,6,23,.35);
+}
+
+.family-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.family-option {
+  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid rgba(148,163,184,.1);
+  border-radius: 12px;
+  color: #8492a6;
+  background: rgba(15,23,42,.45);
+  cursor: pointer;
+}
+
+.family-option strong,
+.family-option small {
+  display: block;
+}
+
+.family-option strong {
+  color: #cbd5e1;
+}
+
+.family-option small {
+  margin-top: 3px;
+  color: #64748b;
+}
+
+.family-option.active {
+  border-color: rgba(246,198,91,.44);
+  background: rgba(246,198,91,.07);
+  box-shadow: 0 0 26px rgba(246,198,91,.07);
+}
+
+.family-option.active strong {
+  color: #fff0ad;
+}
+
+.toggle {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 12px;
+  background: rgba(15,23,42,.5);
+  color: #718096;
+}
+
+.toggle.active {
+  color: #67e8f9;
+  border-color: rgba(0,229,255,.28);
+  background: rgba(0,229,255,.06);
+}
+
+.stage {
+  position: relative;
+  min-height: 820px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(148,163,184,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,.03) 1px, transparent 1px),
+    rgba(3,7,18,.94);
+  background-size: 28px 28px;
+}
+
+.stage canvas {
+  position: absolute !important;
+  inset: 0;
+}
+
+.stage-title {
+  position: absolute;
+  z-index: 5;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  width: 90%;
+}
+
+.stage-title span,
+.stage-title small {
+  display: block;
+  color: #67e8f9;
+  font-size: 9px;
+  letter-spacing: .25em;
+}
+
+.stage-title strong {
+  display: block;
+  margin-top: 8px;
+  font-family: Cinzel, Georgia, serif;
+  color: #fff0b8;
+  font-size: 25px;
+  letter-spacing: .22em;
+}
+
+.stage-title small {
+  margin-top: 8px;
+  color: #64748b;
+}
+
+.stage-hint {
+  position: absolute;
+  z-index: 5;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #64748b;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.analysis-panel h2 {
+  color: #fff0ad;
+  font-family: Cinzel, Georgia, serif;
+  font-size: 18px;
+  letter-spacing: .12em;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metric {
+  padding: 10px;
+  border: 1px solid rgba(148,163,184,.09);
+  border-radius: 12px;
+  background: rgba(15,23,42,.4);
+}
+
+.metric small,
+.metric strong {
+  display: block;
+}
+
+.metric small {
+  color: #64748b;
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  margin-top: 4px;
+  color: #fff0ad;
+}
+
+.reading {
+  color: #aab6c8;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.sequence {
+  color: #fde68a;
+  font-family: monospace;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.rhythm {
+  color: #67e8f9;
+  font-family: monospace;
+  letter-spacing: .12em;
+}
+
+.mantra {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: 16px;
+  color: #ecfeff;
+  background: rgba(0,229,255,.045);
+  font-family: Cinzel, Georgia, serif;
+  line-height: 1.7;
+  letter-spacing: .08em;
+}
+
+footer {
+  position: relative;
+  max-width: 1860px;
+  margin: 18px auto 0;
+  padding: 14px;
+  color: #64748b;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1200px) {
+  .layout { grid-template-columns: 1fr; }
+  .stage { min-height: 720px; }
+}
+
+@media (max-width: 650px) {
+  .app-shell { padding: 10px; }
+  header { align-items: flex-start; flex-direction: column; }
+  .stage { min-height: 650px; }
+  .stage-title strong { font-size: 21px; }
+}

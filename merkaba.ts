@@ -1,85 +1,58 @@
 import { Vector3 } from "three";
 import type { NameDNA } from "../engine/nameDNA";
-import type { PathLayer } from "../engine/types";
-import { mulberry32 } from "../engine/random";
+import type { SignatureModel } from "../engine/types";
+import { circlePoints, makeLayer, polygonPoints, signatureRng } from "./utils";
 
-export function polygonPoints(
-  sides: number,
-  radius: number,
-  rotation = 0,
-  z = 0,
-  warp = 0
-): Vector3[] {
-  const points: Vector3[] = [];
-  for (let i = 0; i <= sides; i += 1) {
-    const index = i % sides;
-    const angle = rotation + index * Math.PI * 2 / sides;
-    const modulatedRadius = radius * (1 + Math.sin(index * 1.618 + rotation) * warp);
-    points.push(new Vector3(
-      Math.cos(angle) * modulatedRadius,
-      Math.sin(angle) * modulatedRadius,
-      z
-    ));
+export function buildCrystal(dna: NameDNA): SignatureModel {
+  const random = signatureRng(dna, "CRYSTAL");
+  const primary = [];
+  const secondary = [];
+  const micro = [];
+  const nodes = [];
+  const sides = dna.outerSides;
+  const phase = (dna.values[0] - 1) * Math.PI * 2 / 27;
+  const outer = polygonPoints(sides, 2.28, phase, 0, 0.04 + dna.entropy * 0.05);
+
+  primary.push(makeLayer("outer", outer, { width: 1.4, opacity: 0.82, bloom: 1.1 }));
+
+  const vertices = outer.slice(0, -1);
+  vertices.forEach((vertex, index) => {
+    primary.push(makeLayer(`radial-${index}`, [vertex, new Vector3(0, 0, (index % 2 ? 0.1 : -0.08))], {
+      width: 0.8,
+      opacity: 0.5,
+      bloom: 0.55
+    }));
+    const skip = 1 + (dna.values[index % dna.values.length] % Math.max(2, sides - 2));
+    secondary.push(makeLayer(`chord-${index}`, [vertex, vertices[(index + skip) % sides]], {
+      width: 0.42,
+      opacity: 0.24,
+      bloom: 0.22
+    }));
+    nodes.push({
+      id: `vertex-${index}`,
+      position: vertex.clone().setZ(0.05),
+      size: 0.03 + random() * 0.02,
+      color: index % 3 === 0 ? "#dffcff" : "#ffe5a0",
+      intensity: 1 + random()
+    });
+  });
+
+  for (let ring = 1; ring <= dna.rings + 3; ring += 1) {
+    const ratio = 0.16 + ring * 0.16;
+    micro.push(makeLayer(`inner-${ring}`, polygonPoints(
+      sides,
+      2.28 * ratio,
+      phase + ring * 0.15,
+      ring * 0.018,
+      0.02
+    ), { width: 0.34, opacity: 0.13, bloom: 0.15 }));
   }
-  return points;
-}
 
-export function circlePoints(
-  radius: number,
-  segments = 128,
-  rotation = 0,
-  z = 0,
-  scaleX = 1,
-  scaleY = 1
-): Vector3[] {
-  const points: Vector3[] = [];
-  for (let i = 0; i <= segments; i += 1) {
-    const angle = rotation + i * Math.PI * 2 / segments;
-    points.push(new Vector3(
-      Math.cos(angle) * radius * scaleX,
-      Math.sin(angle) * radius * scaleY,
-      z
-    ));
-  }
-  return points;
-}
+  secondary.push(makeLayer("halo", circlePoints(2.42, 180, phase * 0.2, -0.05), {
+    width: 0.5,
+    opacity: 0.2,
+    bloom: 0.28
+  }));
 
-export function spiralPoints(
-  turns: number,
-  radius: number,
-  phase: number,
-  z = 0,
-  segments = 420,
-  exponent = 0.7
-): Vector3[] {
-  const points: Vector3[] = [];
-  for (let i = 0; i <= segments; i += 1) {
-    const t = i / segments;
-    const angle = phase + t * Math.PI * 2 * turns;
-    const r = radius * Math.pow(t, exponent);
-    points.push(new Vector3(Math.cos(angle) * r, Math.sin(angle) * r, z));
-  }
-  return points;
-}
-
-export function makeLayer(
-  id: string,
-  points: Vector3[],
-  options: Partial<Omit<PathLayer, "id" | "points">> = {}
-): PathLayer {
-  return {
-    id,
-    points,
-    color: options.color ?? "#f6c65b",
-    opacity: options.opacity ?? 0.8,
-    width: options.width ?? 1,
-    bloom: options.bloom ?? 1,
-    depth: options.depth ?? 0
-  };
-}
-
-export function signatureRng(dna: NameDNA, salt: string): () => number {
-  let seed = dna.seed;
-  for (let i = 0; i < salt.length; i += 1) seed = Math.imul(seed ^ salt.charCodeAt(i), 16777619);
-  return mulberry32(seed >>> 0);
+  return { family: "crystal", primary, secondary, micro, nodes, coreRadius: 0.2, outerRadius: 2.5 };
 }

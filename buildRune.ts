@@ -1,75 +1,53 @@
 import { Vector3 } from "three";
 import type { NameDNA } from "../engine/nameDNA";
 import type { SignatureModel } from "../engine/types";
-import { circlePoints, makeLayer, signatureRng } from "./utils";
+import { circlePoints, makeLayer, polygonPoints, signatureRng } from "./utils";
 
-export function buildTree(dna: NameDNA): SignatureModel {
-  const random = signatureRng(dna, "TREE");
+export function buildMerkaba(dna: NameDNA): SignatureModel {
+  const random = signatureRng(dna, "MERKABA");
   const primary = [];
   const secondary = [];
   const micro = [];
   const nodes = [];
-  const depth = 4 + Math.min(3, Math.floor(dna.uniqueCount / 3));
-  const spread = 0.28 + (dna.consonants / Math.max(1, dna.length)) * 0.28;
-  const taper = 0.63 + dna.entropy * 0.08;
-  let branchIndex = 0;
+  const layers = 3 + dna.rings;
+  const phase = (dna.values[0] - 1) * Math.PI * 2 / 27;
 
-  function branch(start: Vector3, length: number, angle: number, level: number, z: number): void {
-    if (level <= 0) return;
-    const bend = Math.sin((branchIndex + 1) * 1.618 + dna.sum * 0.03) * 0.11;
-    const end = new Vector3(
-      start.x + Math.cos(angle + bend) * length,
-      start.y + Math.sin(angle + bend) * length,
-      z + (random() - 0.5) * 0.08
-    );
-    primary.push(makeLayer(`branch-${branchIndex}`, [start, end], {
-      width: 1.45 * (level / depth) + 0.22,
-      opacity: 0.5 + level / depth * 0.35,
-      bloom: level > depth - 2 ? 1 : 0.45
+  for (let layer = 0; layer < layers; layer += 1) {
+    const radius = 0.75 + layer * 0.38 + random() * 0.08;
+    const twist = phase + layer * (0.11 + dna.entropy * 0.16);
+    primary.push(makeLayer(`up-${layer}`, polygonPoints(3, radius, -Math.PI / 2 + twist, layer * 0.035, 0.025), {
+      width: 1.35,
+      opacity: 0.84 - layer * 0.07,
+      bloom: 1.15
     }));
-    if (level <= 2) {
-      nodes.push({
-        id: `leaf-${branchIndex}`,
-        position: end.clone(),
-        size: 0.03 + random() * 0.025,
-        color: random() > 0.32 ? "#ffe5a0" : "#dffcff",
-        intensity: 1 + random()
-      });
-    }
-    branchIndex += 1;
-    const letterValue = dna.values[branchIndex % dna.values.length] ?? 1;
-    const localSpread = spread * (0.82 + letterValue / 54);
-    branch(end, length * taper, angle - localSpread, level - 1, z + 0.015);
-    branch(end, length * taper, angle + localSpread, level - 1, z - 0.015);
-    if ((branchIndex + dna.sum) % 4 === 0) {
-      branch(end, length * taper * 0.82, angle + localSpread * 0.12, level - 1, z);
-    }
-  }
-
-  branch(new Vector3(0, -2.1, 0), 0.95, Math.PI / 2, depth, 0);
-
-  for (let ring = 0; ring < dna.rings + 3; ring += 1) {
-    secondary.push(makeLayer(`root-${ring}`, circlePoints(
-      0.4 + ring * 0.34,
-      96,
-      Math.PI,
-      -0.04,
-      1,
-      0.28
-    ).map((point) => point.add(new Vector3(0, -2.1, 0))), {
-      width: 0.5,
-      opacity: 0.18,
-      bloom: 0.22
+    primary.push(makeLayer(`down-${layer}`, polygonPoints(3, radius * (0.94 + random() * 0.05), Math.PI / 2 - twist * 0.77, -layer * 0.03, 0.018), {
+      width: 1.1,
+      opacity: 0.74 - layer * 0.06,
+      bloom: 0.9
+    }));
+    secondary.push(makeLayer(`ring-${layer}`, circlePoints(radius * 0.48, 160, twist * 0.3, layer * 0.02), {
+      width: 0.55,
+      opacity: 0.25,
+      bloom: 0.3
     }));
   }
 
-  for (let i = 0; i < 16 + dna.length; i += 1) {
-    const angle = Math.PI + (i / (15 + dna.length)) * Math.PI;
-    micro.push(makeLayer(`root-thread-${i}`, [
-      new Vector3(0, -2.1, -0.05),
-      new Vector3(Math.cos(angle) * (0.8 + random() * 1.3), -2.1 + Math.sin(angle) * (0.25 + random() * 0.4), -0.08)
-    ], { width: 0.22, opacity: 0.12, bloom: 0.1 }));
+  const spokes = dna.axes + dna.vowels;
+  for (let i = 0; i < spokes; i += 1) {
+    const angle = phase + i * Math.PI * 2 / spokes;
+    const r = 2.15 + random() * 0.25;
+    micro.push(makeLayer(`spoke-${i}`, [
+      new Vector3(Math.cos(angle) * 0.22, Math.sin(angle) * 0.22, 0),
+      new Vector3(Math.cos(angle) * r, Math.sin(angle) * r, (random() - 0.5) * 0.15)
+    ], { width: 0.35, opacity: 0.18, bloom: 0.2 }));
+    nodes.push({
+      id: `node-${i}`,
+      position: new Vector3(Math.cos(angle) * r, Math.sin(angle) * r, 0.06),
+      size: 0.032 + random() * 0.024,
+      color: i % 3 === 0 ? "#dffcff" : "#ffe5a0",
+      intensity: 1.2 + random()
+    });
   }
 
-  return { family: "tree", primary, secondary, micro, nodes, coreRadius: 0.18, outerRadius: 2.45 };
+  return { family: "merkaba", primary, secondary, micro, nodes, coreRadius: 0.22, outerRadius: 2.4 };
 }
