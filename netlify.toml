@@ -1,3 +1,11 @@
-import type{RuneStyle}from"../engine/types";import{useRuneStore}from"../store/useRuneStore";
-const modes:Array<[RuneStyle,string]>=[["ceremonial","Ceremonial"],["technical","Técnico"],["minimal","Minimalista"],["jovian","Joviano"]];
-export default function ControlPanel(){const s=useRuneStore();return <aside className="panel controls-panel"><div className="kicker">GENERADOR DE RUNAS</div><label>Nombre o palabra</label><input value={s.name} onChange={e=>s.setName(e.target.value)} placeholder="Escribe un nombre"/><div className="section"><div className="section-title">MODO VISUAL</div><div className="family-list">{modes.map(([id,l])=><button key={id} onClick={()=>s.setStyle(id)} className={`family-option ${s.style===id?"active":""}`}><strong>{l}</strong><small>La identidad no cambia.</small></button>)}</div></div><div className="section"><div className="section-title">CALIDAD LUMÍNICA</div><label>Intensidad</label><input type="range" min=".7" max="2.3" step=".05" value={s.intensity} onChange={e=>s.setIntensity(Number(e.target.value))}/><label>Animación ceremonial</label><button className={`toggle ${s.autoRotate?"active":""}`} onClick={()=>s.setAutoRotate(!s.autoRotate)}>{s.autoRotate?"ACTIVA":"DETENIDA"}</button></div></aside>}
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
