@@ -1,3 +1,31 @@
-import{Canvas,useFrame}from"@react-three/fiber";import{Line,OrbitControls,Sparkles}from"@react-three/drei";import{Bloom,EffectComposer,Noise,Vignette}from"@react-three/postprocessing";import{BlendFunction,KernelSize}from"postprocessing";import{useRef}from"react";import*as THREE from"three";import type{RuneModel}from"../engine/types";import{useRuneStore}from"../store/useRuneStore";
-function Rune({model}:{model:RuneModel}){const g=useRef<THREE.Group>(null),intensity=useRuneStore(s=>s.intensity),auto=useRuneStore(s=>s.autoRotate);useFrame((_,d)=>{if(g.current&&auto)g.current.rotation.z+=d*.025});const R=(l:RuneModel["primary"][number])=><Line key={l.id} points={l.points} color={l.color} transparent opacity={l.opacity} lineWidth={l.width} depthWrite={false} toneMapped={false}/>;return <group ref={g}><group position-z={.08}>{model.primary.map(R)}</group><group position-z={.01}>{model.secondary.map(R)}</group><group position-z={-.05}>{model.micro.map(R)}</group>{model.nodes.map(n=><mesh key={n.id} position={n.position}><sphereGeometry args={[n.size,18,18]}/><meshBasicMaterial color={n.color} toneMapped={false}/><pointLight color={n.color} intensity={n.intensity*intensity} distance={.8} decay={2}/></mesh>)}<mesh position-z={.14}><sphereGeometry args={[model.coreRadius,40,40]}/><meshBasicMaterial color="#e9fdff" toneMapped={false}/><pointLight color="#00e5ff" intensity={5*intensity} distance={3.2} decay={2}/></mesh></group>}
-export default function SignatureScene({model}:{model:RuneModel}){const intensity=useRuneStore(s=>s.intensity);return <Canvas dpr={[1,2]} gl={{antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:"high-performance"}} camera={{position:[0,0,7.4],fov:43}}><color attach="background" args={["#030712"]}/><ambientLight intensity={.06}/><Sparkles count={70} scale={[6.5,7.5,1]} size={1.25} speed={.08} opacity={.24} color="#d7b76b"/><Rune model={model}/><OrbitControls enablePan={false} enableRotate={false} minDistance={6.2} maxDistance={9}/><EffectComposer multisampling={4}><Bloom intensity={1.25*intensity} luminanceThreshold={.12} luminanceSmoothing={.48} kernelSize={KernelSize.LARGE} mipmapBlur/><Noise opacity={.012} blendFunction={BlendFunction.SOFT_LIGHT}/><Vignette eskil={false} offset={.15} darkness={.66}/></EffectComposer></Canvas>}
+{
+  "name": "lenguaje-geometrico-v11-runas-personalizadas",
+  "private": true,
+  "version": "11.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.17.10",
+    "@react-three/postprocessing": "^2.16.3",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.468.0",
+    "postprocessing": "^6.36.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.171.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/three": "^0.171.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.14"
+  }
+}
